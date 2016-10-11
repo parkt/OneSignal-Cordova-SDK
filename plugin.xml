@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="onesignal-cordova-plugin"
+    id="onesignal-cordova-plugin-pgb-compat"
     version="2.0.6">
 
-
-  <name>OneSignal Push Notifications</name>
+  <name>OneSignal Push Notifications PGB Compat</name>
   <author>Josh Kasten</author>
 
   <description>OneSignal is a high volume Push Notification service for mobile apps. In addition to basic notification delivery, OneSignal also provides tools to localize, target, schedule, A/B test, and automate notifications that you send.</description>
 
-  <keywords>push,notification,push notification,push notifications,apns,gcm,adm,retention,messaging,ios,android,windows phone</keywords>
+  <keywords>push,notification,push notification,push notifications,apns,gcm,adm,retention,messaging</keywords>
 
   <license>MIT</license>
 
@@ -19,34 +18,86 @@
   </js-module>
 
   <engines>
-    <engine name="cordova-android" version=">=4.0.0" /> <!-- This main branch of OneSignal depends on gradle and maven. -->
-    <engine name="apple-xcode" version=">=6.2.0" />
-    <engine name="apple-ios" version=">=7.0.0" />
+    <engine name="cordova" version=">=3.3.0" />
   </engines>
   
   <platform name="android">
-    <framework src="com.onesignal:OneSignal:3.3.0@aar" />
-
-    <framework src="com.google.android.gms:play-services-gcm:+" />
-    <!-- play-services-analytics is only required when gms version 8.1.0 or older is used. -->
-    <framework src="com.google.android.gms:play-services-analytics:+" />
-    <framework src="com.google.android.gms:play-services-location:+" />
-    
-    <framework src="build-extras-onesignal.gradle" custom="true" type="gradleReference" />
-
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="OneSignalPush" >
         <param name="android-package" value="com.plugin.gcm.OneSignalPush" />
       </feature>
     </config-file>
 
-    <!-- PhoneGap Build (PGB) does not have a amazon build target so it include the required manifest entries in all Android builds. -->
     <config-file target="AndroidManifest.xml" parent="/manifest">
+      <uses-permission android:name="android.permission.INTERNET" />
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+      <uses-permission android:name="android.permission.WAKE_LOCK" />
+      <uses-permission android:name="android.permission.VIBRATE"/>
+      
+      <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+      <permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+      <uses-permission android:name="$PACKAGE_NAME.permission.C2D_MESSAGE" />
+      
+      <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+      <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+      
+      <!-- START: ShortcutBadger -->
+      <!-- Samsung -->
+      <uses-permission android:name="com.sec.android.provider.badge.permission.READ"/>
+      <uses-permission android:name="com.sec.android.provider.badge.permission.WRITE"/>
+
+      <!-- HTC -->
+      <uses-permission android:name="com.htc.launcher.permission.READ_SETTINGS"/>
+      <uses-permission android:name="com.htc.launcher.permission.UPDATE_SHORTCUT"/>
+
+      <!-- Sony -->
+      <uses-permission android:name="com.sonyericsson.home.permission.BROADCAST_BADGE"/>
+
+      <!-- Apex -->
+      <uses-permission android:name="com.anddoes.launcher.permission.UPDATE_COUNT"/>
+
+      <!-- Solid -->
+      <uses-permission android:name="com.majeur.launcher.permission.UPDATE_BADGE"/>
+
+      <!-- Huawei -->
+      <uses-permission android:name="com.huawei.android.launcher.permission.CHANGE_BADGE" />
+      <uses-permission android:name="com.huawei.android.launcher.permission.READ_SETTINGS" />
+      <uses-permission android:name="com.huawei.android.launcher.permission.WRITE_SETTINGS" />
+      <!-- End: ShortcutBadger -->
+      
       <uses-permission android:name="com.amazon.device.messaging.permission.RECEIVE" />
       <permission android:name="$PACKAGE_NAME.permission.RECEIVE_ADM_MESSAGE" android:protectionLevel="signature" />
       <uses-permission android:name="$PACKAGE_NAME.permission.RECEIVE_ADM_MESSAGE" />
     </config-file>
+
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
+      <receiver android:name="com.onesignal.NotificationOpenedReceiver" />
+      <receiver
+        android:name="com.onesignal.GcmBroadcastReceiver"
+        android:permission="com.google.android.c2dm.permission.SEND" >
+        <intent-filter>
+          <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+          <category android:name="$PACKAGE_NAME" />
+        </intent-filter>
+      </receiver>
+      <service android:name="com.onesignal.GcmIntentService" />
+      <service android:name="com.onesignal.SyncService" android:stopWithTask="false" />
+      <activity android:name="com.onesignal.PermissionsActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+      
+      <service android:name="com.onesignal.NotificationRestoreService" />
+      <receiver android:name="com.onesignal.BootUpReceiver">
+        <intent-filter>
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+            <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+        </intent-filter>
+      </receiver>
+      <receiver android:name="com.onesignal.UpgradeReceiver" >
+        <intent-filter>
+            <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+        </intent-filter>
+      </receiver>
+      
       <amazon:enable-feature android:name="com.amazon.device.messaging" android:required="false" xmlns:amazon="http://schemas.amazon.com/apk/res/android" />
       <service android:name="com.onesignal.ADMMessageHandler" android:exported="false" />
       <receiver
@@ -60,6 +111,7 @@
       </receiver>
     </config-file>
     
+    <source-file src="src/android/libs/OneSignalSDK.jar" target-dir="libs" />
     <source-file src="src/android/com/plugin/gcm/OneSignalPush.java" target-dir="src/com/plugin/gcm/" />
   </platform>
   
@@ -69,7 +121,7 @@
     <config-file target="config.xml" parent="/*">
       <feature name="OneSignalPush">
         <param name="ios-package" value="OneSignalPush"/>
-        </feature>
+      </feature>
     </config-file>
 
     <framework src="SystemConfiguration.framework" />
@@ -80,7 +132,7 @@
       </array>
     </config-file>
 
-    <!-- Headers -->
+      <!-- Headers -->
     <header-file src="src/ios/OneSignal.h" />
     <header-file src="src/ios/OneSignalHTTPClient.h" />
     <header-file src="src/ios/OneSignalTrackIAP.h" />
