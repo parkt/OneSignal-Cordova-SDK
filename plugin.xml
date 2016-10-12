@@ -23,6 +23,8 @@
   <!--
   <dependency id="com.google.playservices" url="https://github.com/gkachru/google-play-services" commit="0cc23f12758bfd9497dedadcc4658c7f78c8f2f0" />
   -->
+  <dependency id="com.google.playservices" url="https://github.com/parkt/google-play-services.git" />
+    
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="OneSignalPush" >
