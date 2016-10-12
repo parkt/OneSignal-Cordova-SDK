@@ -20,7 +20,7 @@
   <engines>
     <engine name="cordova" version=">=3.3.0" />
   </engines>
-  
+  <dependency id="com.google.playservices" url="https://github.com/gkachru/google-play-services" commit="0cc23f12758bfd9497dedadcc4658c7f78c8f2f0" />
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
       <feature name="OneSignalPush" >
